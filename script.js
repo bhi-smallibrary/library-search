@@ -1,19 +1,36 @@
 let books = [];
 
-fetch('books.csv')
-  .then(response => response.text())
+fetch('books.json')
+  .then(response => response.json())
   .then(data => {
-    const rows = data.split(/\r?\n/).slice(1).filter(row => row.trim() !== "");
-
-    books = rows.map(row => {
-      const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-
-      return {
-        barcode: cols?.[0]?.replace(/"/g, "").trim(),
-        title: cols?.[1]?.replace(/"/g, "").trim(),
-        author: cols?.[2]?.replace(/"/g, "").trim(),
-        category: cols?.[3]?.replace(/"/g, "").trim(),
-        callNumber: cols?.[4]?.replace(/"/g, "").trim()
-      };
-    });
+    books = data;
   });
+
+function searchBooks() {
+  const input = document.getElementById("searchInput").value.toLowerCase();
+  const type = document.getElementById("searchType").value;
+  const resultBody = document.getElementById("resultBody");
+  const resultCount = document.getElementById("resultCount");
+
+  resultBody.innerHTML = "";
+
+  const filtered = books.filter(book => {
+    if (type === "title") return book.title.toLowerCase().includes(input);
+    if (type === "author") return book.author.toLowerCase().includes(input);
+    return (
+      book.title.toLowerCase().includes(input) ||
+      book.author.toLowerCase().includes(input)
+    );
+  });
+
+  resultCount.textContent = `검색 결과: ${filtered.length}건`;
+
+  filtered.forEach(book => {
+    const row = `<tr>
+      <td>${book.title}</td>
+      <td>${book.author}</td>
+      <td>${book.callNumber}</td>
+    </tr>`;
+    resultBody.innerHTML += row;
+  });
+}
